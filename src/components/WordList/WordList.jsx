@@ -2,12 +2,12 @@ import React from "react";
 import './WordList.css';
 
 const WordList = () => {
-    const words = ['WORD', 'SEARCH', 'PLAY']
+    const WORDS = ["EXAMPLE", "TEST", "GRID", "SEARCH", "WORD", "PUZZLE", "DEVELOPER", "REACT"];
     return (
         <>
             <h2>Word List</h2>
             <ul>
-                {words.map((word, index) => (
+                {WORDS.map((word, index) => (
                     <li key={index}>{word}</li>
                 ))}
             </ul>

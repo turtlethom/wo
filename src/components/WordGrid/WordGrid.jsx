@@ -15,16 +15,20 @@ const WordGrid = () => {
     const newGrid = grid.map(row => row.map(cell => cell));
 
     for (let i = 0; i < word.length; i++) {
-      const currentRow = row + (direction === 'vertical' ? i : 0);
-      const currentCol = col + (direction === 'horizontal' ? i : 0);
+      const currentRow = row + (direction === 'vertical' ? i : direction.startsWith('diagonal') ? i : 0);
+      const currentCol = col + (direction === 'horizontal' ? i : direction === 'diagonal-up' ? i : -i);
 
       if (
         currentRow < 0 ||
         currentRow >= grid.length ||
         currentCol < 0 ||
-        currentCol >= grid[0].length ||
-        newGrid[currentRow][currentCol] !== ''
+        currentCol >= grid[0].length
       ) {
+        return null; // Invalid placement, abort and retry
+      }
+
+      // Check if cell is already occupied by a different character
+      if (newGrid[currentRow][currentCol] !== '' && newGrid[currentRow][currentCol] !== word[i]) {
         return null; // Invalid placement, abort and retry
       }
 
@@ -36,12 +40,17 @@ const WordGrid = () => {
 
   const updateWordGrid = () => {
     let newGrid = Array.from({ length: 10 }, () => Array.from({ length: 10 }, () => ''));
+    // Sorting Words By Length In DESC Order
+    const sortedWords = WORDS.toSorted((a, b) => b.length - a.length);
 
-    WORDS.forEach(word => {
+    sortedWords.forEach(word => {
       let placed = false;
-      while (!placed) {
-        const directionIndex = Math.floor(Math.random() * 3); // 0: horizontal, 1: vertical, 2: diagonal
-        let direction;
+      let attempts = 0;
+
+      // Attempting To Place Words Within Grid
+      const directionIndex = Math.floor(Math.random() * 4); // 0: horizontal, 1: vertical, 2: diagonal-up, 3: diagonal-down
+      let direction;
+      while (!placed && attempts < 100) {
 
         if (directionIndex === 0) {
           direction = 'horizontal';
@@ -71,6 +80,7 @@ const WordGrid = () => {
           placed = true;
           newGrid = newGridAttempt;
         }
+        attempts++;
       }
     });
 
