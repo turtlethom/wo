@@ -47,9 +47,11 @@ const WordGrid = () => {
       let placed = false;
       let attempts = 0;
 
-      // Attempting To Place Words Within Grid
+      // Attempting To  Place Words Within Grid
       const directionIndex = Math.floor(Math.random() * 4); // 0: horizontal, 1: vertical, 2: diagonal-up, 3: diagonal-down
       let direction;
+
+      // `attempts` Introduced To Prevent Infinite Looping
       while (!placed && attempts < 100) {
 
         if (directionIndex === 0) {
