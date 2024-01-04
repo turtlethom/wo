@@ -1,15 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import './WordGrid.css';
 
-const WordGrid = () => {
-  const WORDS = ["EXAMPLE", "TEST", "GRID", "SEARCH", "WORD", "PUZZLE", "DEVELOPER", "REACT"];
-  const [grid, setGrid] = useState(Array.from({ length: 10 }, () => Array.from({ length: 10 }, () => '')));
+const WordGrid = ({ words }) => {
+  // Grid Size Control
+  const GRID_LENGTH = 14
+  const WORDS = words;
+  // console.log(WORDS)
+  
+  const [ grid, setGrid ] = useState(Array.from({ length: GRID_LENGTH }, () => Array.from({ length: GRID_LENGTH }, () => '')));
+  const [ wordPlacementMap, setWordPlacementMap ] = useState(new Map());
 
   useEffect(() => {
-    const initialGrid = Array.from({ length: 10 }, () => Array.from({ length: 10 }, () => ''));
+    const initialGrid = Array.from({ length: GRID_LENGTH }, () => Array.from({ length: GRID_LENGTH }, () => ''));
     setGrid(initialGrid);
     updateWordGrid();
-  }, []);
+  }, [words]);
 
   const placeWord = (grid, word, row, col, direction) => {
     const newGrid = grid.map(row => row.map(cell => cell));
@@ -28,8 +33,12 @@ const WordGrid = () => {
       }
 
       // Check if cell is already occupied by a different character
-      if (newGrid[currentRow][currentCol] !== '' && newGrid[currentRow][currentCol] !== word[i]) {
-        return null; // Invalid placement, abort and retry
+      if (newGrid[currentRow][currentCol] !== '') {
+        if (newGrid[currentRow][currentCol] !== word[i]) {
+          return null; // Invalid placement, abort and retry
+        } else {
+          continue;
+        }
       }
 
       newGrid[currentRow][currentCol] = word[i];
@@ -39,48 +48,45 @@ const WordGrid = () => {
   };
 
   const updateWordGrid = () => {
-    let newGrid = Array.from({ length: 10 }, () => Array.from({ length: 10 }, () => ''));
+    let newGrid = Array.from({ length: GRID_LENGTH }, () => Array.from({ length: GRID_LENGTH }, () => ''));
+    const newWordPlacementMap = new Map();
     // Sorting Words By Length In DESC Order
-    const sortedWords = WORDS.toSorted((a, b) => b.length - a.length);
+    const sortedWords = WORDS.sort((a, b) => b.length - a.length);
 
     sortedWords.forEach(word => {
       let placed = false;
       let attempts = 0;
 
-      // Attempting To  Place Words Within Grid
-      const directionIndex = Math.floor(Math.random() * 4); // 0: horizontal, 1: vertical, 2: diagonal-up, 3: diagonal-down
-      let direction;
+      const directionOrder = (word.length > 8 
+      ? ['horizontal', 'vertical', 'diagonal-up', 'diagonal-down']
+      : ['horizontal', 'vertical', 'diagonal-up', 'diagonal-down', 'horizontal-reverse', 'vertical-reverse']);
 
       // `attempts` Introduced To Prevent Infinite Looping
       while (!placed && attempts < 100) {
-
-        if (directionIndex === 0) {
-          direction = 'horizontal';
-        } else if (directionIndex === 1) {
-          direction = 'vertical';
-        } else {
-          direction = Math.random() < 0.5 ? 'diagonal-up' : 'diagonal-down';
-        }
-
+        // Attempting To Place Words Within Grid
+        const directionIndex = Math.floor(Math.random() * directionOrder.length);
+        const direction = directionOrder[directionIndex];
+  
         const wordLength = word.length;
-
+  
         let row, col;
-
-        if (direction === 'horizontal') {
-          row = Math.floor(Math.random() * 10);
-          col = Math.floor(Math.random() * (10 - wordLength + 1));
-        } else if (direction === 'vertical') {
-          row = Math.floor(Math.random() * (10 - wordLength + 1));
-          col = Math.floor(Math.random() * 10);
+  
+        if (direction.startsWith('horizontal')) {
+          row = Math.floor(Math.random() * GRID_LENGTH);
+          col = Math.floor(Math.random() * (GRID_LENGTH - wordLength + 1));
+        } else if (direction.startsWith('vertical')) {
+          row = Math.floor(Math.random() * (GRID_LENGTH - wordLength + 1));
+          col = Math.floor(Math.random() * GRID_LENGTH);
         } else {
-          row = Math.floor(Math.random() * (10 - wordLength + 1));
-          col = Math.floor(Math.random() * (10 - wordLength + 1));
+          row = Math.floor(Math.random() * (GRID_LENGTH - wordLength + 1));
+          col = Math.floor(Math.random() * (GRID_LENGTH - wordLength + 1));
         }
-
+  
         const newGridAttempt = placeWord(newGrid, word, row, col, direction);
         if (newGridAttempt !== null) {
           placed = true;
           newGrid = newGridAttempt;
+          newWordPlacementMap.set(word, 'YES');
         }
         attempts++;
       }
@@ -88,6 +94,7 @@ const WordGrid = () => {
 
     fillEmptySpaces(newGrid);
     setGrid(newGrid);
+    setWordPlacementMap(newWordPlacementMap)
   };
 
   const fillEmptySpaces = (grid) => {
@@ -119,6 +126,16 @@ const WordGrid = () => {
           ))}
         </tbody>
       </table>
+      <div>
+        <h3>Word Placement Map</h3>
+        <ul>
+          {WORDS.map((word) => (
+            <li key={word}>
+              {word}: {wordPlacementMap.get(word) || "NO"}
+            </li>
+          ))}
+        </ul>
+      </div>
     </>
   );
 };
