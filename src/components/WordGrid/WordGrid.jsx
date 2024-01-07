@@ -58,31 +58,32 @@ const WordGrid = ({ words }) => {
   }
 
   const handleMouseUp = () => {
-    // Perform any action or update state as needed
     if (startCoordinate && endCoordinate) {
       const { cells, word } = getSelectedCells(startCoordinate, endCoordinate);
       const joinedWord = word.join('');
-
+  
       if (joinedWord && WORDS.includes(joinedWord)) {
-          setSelections([...selections, { cells, word: joinedWord }])
-          setWordColors(prevColors => ({
-            ...prevColors,
-            [joinedWord]: getRandomColor() // Implement getRandomColor
-          }));
-
-        const remainingWords = WORDS.filter(word => word !== joinedWord)
-
+        const color = getRandomColor();
+        setSelections([...selections, { cells, word: joinedWord, color }]);
+        setWordColors(prevColors => ({
+          ...prevColors,
+          [joinedWord]: color
+        }));
+  
+        const remainingWords = WORDS.filter(w => w !== joinedWord);
+  
         if (remainingWords.length === 0) {
-          // Something Happens -- Maybe Restart Pop Up?
+          // Something happens, e.g., show a restart pop-up
         }
       } else {
-        console.log(`${joinedWord} is not one of the valid words`)
+        console.log(`${joinedWord} is not one of the valid words`);
       }
     }
-
+  
     setStartCoordinate(null);
     setEndCoordinate(null);
-  }
+  };
+  
 
   const getSelectedCells = (startCoord, endCoord) => {
     // Bresenham's line algorithm
@@ -116,10 +117,10 @@ const WordGrid = ({ words }) => {
     return { cells: selectedCells, word: selectedWord }
   };
 
-  const getWordFromCells = (selectedCells) => {
-    const word = selectedCells.map(cell => grid[cell.y][cell.x]).join('');
-    return word;
-  };
+  // const getWordFromCells = (selectedCells) => {
+  //   const word = selectedCells.map(cell => grid[cell.y][cell.x]).join('');
+  //   return word;
+  // };
 
   const handleScrambleGrid = () => {
     // const initialGrid = Array.from({ length: GRID_LENGTH }, () => Array.from({ length: GRID_LENGTH }, () => ''));
@@ -223,6 +224,8 @@ const WordGrid = ({ words }) => {
     return alphabet[Math.floor(Math.random() * alphabet.length)];
   };
 
+  // ... (previous code)
+
   return (
     <>
       <h2>Word Search</h2>
@@ -233,22 +236,25 @@ const WordGrid = ({ words }) => {
             <tr key={rowIndex}>
               {row.map((cell, columnIndex) => {
                 const cellCoord = { x: columnIndex, y: rowIndex };
-                const isSelected = selections.some(
+                const selectedInfo = selections.find(
                   (selection) =>
                     selection.cells.some(
                       (selectedCell) =>
                         selectedCell.x === cellCoord.x &&
                         selectedCell.y === cellCoord.y
                     )
-                );
-                const selectedWord = selections.find(
-                  (selection) =>
-                    selection.cells.some(
-                      (selectedCell) =>
-                        selectedCell.x === cellCoord.x &&
-                        selectedCell.y === cellCoord.y
-                    )
-                )?.word;
+                ) || {};
+                const isSelected =
+                  selectedInfo.word &&
+                  selections.some(
+                    (selection) =>
+                      selection.cells.some(
+                        (selectedCell) =>
+                          selectedCell.x === cellCoord.x &&
+                          selectedCell.y === cellCoord.y &&
+                          selection.word === selectedInfo.word
+                      )
+                  );
 
                 return (
                   <td
@@ -256,7 +262,8 @@ const WordGrid = ({ words }) => {
                     onMouseDown={() => handleMouseDown(rowIndex, columnIndex)}
                     onMouseOver={() => handleMouseOver(rowIndex, columnIndex)}
                     onMouseUp={handleMouseUp}
-                    className={isSelected ? `selected ${selectedWord}` : ''}
+                    className={isSelected ? `selected ${selectedInfo.word}` : ''}
+                    style={{ backgroundColor: isSelected ? selectedInfo.color : '' }}
                   >
                     {cell}
                   </td>
@@ -278,6 +285,7 @@ const WordGrid = ({ words }) => {
       </div>
     </>
   );
+
 };
 
 export default WordGrid;

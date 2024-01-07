@@ -21,16 +21,3 @@
 .word-grid td:hover {
     background-color: #e0e0e0;
 }
-
-/* Add styles for selected cells */
-.selected {
-    background-color: #ffd700; /* Set your preferred background color for selected cells */
-    color: #000; /* Set your preferred text color for selected cells */
-}
-  
-  /* Add styles for selected words */
-.selected-word {
-    background-color: #00ff00; /* Set your preferred background color for selected words */
-    color: #000; /* Set your preferred text color for selected words */
-    font-weight: bold; /* Make the text bold for better visibility */
-}
