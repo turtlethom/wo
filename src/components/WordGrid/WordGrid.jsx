@@ -9,12 +9,123 @@ const WordGrid = ({ words }) => {
   
   const [ grid, setGrid ] = useState(Array.from({ length: GRID_LENGTH }, () => Array.from({ length: GRID_LENGTH }, () => '')));
   const [ wordPlacementMap, setWordPlacementMap ] = useState(new Map());
+  
+  const [ startCoordinate, setStartCoordinate ] = useState(null);
+  const [ endCoordinate, setEndCoordinate ] = useState(null);
+
+  const [ selections, setSelections ] = useState([]);
+  const [ wordColors, setWordColors ] = useState({});
+  const [ usedColors, setUsedColors ] = useState(new Set());
+
+  const getRandomColor = () => {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+
+    do {
+      for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+      }
+    } while (usedColors.has(color))
+
+    setUsedColors(new Set(usedColors).add(color))
+
+    return color;
+  }
 
   useEffect(() => {
-    const initialGrid = Array.from({ length: GRID_LENGTH }, () => Array.from({ length: GRID_LENGTH }, () => ''));
-    setGrid(initialGrid);
-    updateWordGrid();
+    const colors = {};
+    words.forEach((word) => {
+      colors[word] = getRandomColor();
+    });
+    setWordColors(colors);
   }, [words]);
+
+  useEffect(() => {
+    handleScrambleGrid()
+  }, [])
+
+  // Selection Functionality
+
+  const handleMouseDown = (rowIndex, columnIndex) => {
+    setStartCoordinate({ x: columnIndex, y: rowIndex });
+    setEndCoordinate({ x: columnIndex, y: rowIndex });
+  }
+
+  const handleMouseOver = (rowIndex, columnIndex) => {
+    if (startCoordinate) {
+      setEndCoordinate({ x: columnIndex, y: rowIndex });
+    }
+  }
+
+  const handleMouseUp = () => {
+    // Perform any action or update state as needed
+    if (startCoordinate && endCoordinate) {
+      const { cells, word } = getSelectedCells(startCoordinate, endCoordinate);
+      const joinedWord = word.join('');
+
+      if (joinedWord && WORDS.includes(joinedWord)) {
+          setSelections([...selections, { cells, word: joinedWord }])
+          setWordColors(prevColors => ({
+            ...prevColors,
+            [joinedWord]: getRandomColor() // Implement getRandomColor
+          }));
+
+        const remainingWords = WORDS.filter(word => word !== joinedWord)
+
+        if (remainingWords.length === 0) {
+          // Something Happens -- Maybe Restart Pop Up?
+        }
+      } else {
+        console.log(`${joinedWord} is not one of the valid words`)
+      }
+    }
+
+    setStartCoordinate(null);
+    setEndCoordinate(null);
+  }
+
+  const getSelectedCells = (startCoord, endCoord) => {
+    // Bresenham's line algorithm
+    const selectedCells = [];
+    let x = startCoord.x;
+    let y = startCoord.y;
+    const dx = Math.abs(endCoord.x - startCoord.x);
+    const dy = Math.abs(endCoord.y - startCoord.y);
+    const sx = startCoord.x < endCoord.x ? 1 : -1;
+    const sy = startCoord.y < endCoord.y ? 1 : -1;
+    let err = dx - dy;
+
+    while (true) {
+      selectedCells.push({ x, y })
+
+      if (x === endCoord.x && y === endCoord.y) {
+        break;
+      }
+
+      const e2 = 2 * err;
+      if (e2 > -dy) {
+        err -= dy;
+        x += sx;
+      }
+      if (e2 < dx) {
+        err += dx;
+        y += sy;
+      }
+    }
+    const selectedWord = selectedCells.map(cell => grid[cell.y][cell.x]);
+    return { cells: selectedCells, word: selectedWord }
+  };
+
+  const getWordFromCells = (selectedCells) => {
+    const word = selectedCells.map(cell => grid[cell.y][cell.x]).join('');
+    return word;
+  };
+
+  const handleScrambleGrid = () => {
+    // const initialGrid = Array.from({ length: GRID_LENGTH }, () => Array.from({ length: GRID_LENGTH }, () => ''));
+    // setGrid(initialGrid);
+    updateWordGrid();
+  }
 
   const placeWord = (grid, word, row, col, direction) => {
     const newGrid = grid.map(row => row.map(cell => cell));
@@ -115,13 +226,42 @@ const WordGrid = ({ words }) => {
   return (
     <>
       <h2>Word Search</h2>
+      <button onClick={handleScrambleGrid}>Randomize Grid</button>
       <table className="word-grid">
         <tbody>
           {grid.map((row, rowIndex) => (
             <tr key={rowIndex}>
-              {row.map((cell, columnIndex) => (
-                <td key={columnIndex}>{cell}</td>
-              ))}
+              {row.map((cell, columnIndex) => {
+                const cellCoord = { x: columnIndex, y: rowIndex };
+                const isSelected = selections.some(
+                  (selection) =>
+                    selection.cells.some(
+                      (selectedCell) =>
+                        selectedCell.x === cellCoord.x &&
+                        selectedCell.y === cellCoord.y
+                    )
+                );
+                const selectedWord = selections.find(
+                  (selection) =>
+                    selection.cells.some(
+                      (selectedCell) =>
+                        selectedCell.x === cellCoord.x &&
+                        selectedCell.y === cellCoord.y
+                    )
+                )?.word;
+
+                return (
+                  <td
+                    key={columnIndex}
+                    onMouseDown={() => handleMouseDown(rowIndex, columnIndex)}
+                    onMouseOver={() => handleMouseOver(rowIndex, columnIndex)}
+                    onMouseUp={handleMouseUp}
+                    className={isSelected ? `selected ${selectedWord}` : ''}
+                  >
+                    {cell}
+                  </td>
+                );
+              })}
             </tr>
           ))}
         </tbody>
@@ -131,7 +271,7 @@ const WordGrid = ({ words }) => {
         <ul>
           {WORDS.map((word) => (
             <li key={word}>
-              {word}: {wordPlacementMap.get(word) || "NO"}
+              {word}: {wordPlacementMap.get(word) || 'NO'}
             </li>
           ))}
         </ul>
