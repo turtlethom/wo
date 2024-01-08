@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import './App.css';
 import WordGrid from './components/WordGrid/WordGrid';
-import WordList from './components/WordList/WordList';
 import { generate } from 'random-words';
 
 function App() {
@@ -24,9 +23,8 @@ function App() {
     <>
       <div>
         <h1>Word Search Game</h1>
-        <button onClick={handleGenerateClick}>Set Word List</button>
+        <button onClick={handleGenerateClick}>Change Words</button>
         <WordGrid words={words}/>
-        <WordList />
       </div>
     </>
   )

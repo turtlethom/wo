@@ -8,40 +8,55 @@ const WordGrid = ({ words }) => {
   // console.log(WORDS)
   
   const [ grid, setGrid ] = useState(Array.from({ length: GRID_LENGTH }, () => Array.from({ length: GRID_LENGTH }, () => '')));
-  const [ wordPlacementMap, setWordPlacementMap ] = useState(new Map());
+  const [ wordsFound, setWordsFound ] = useState(new Map());
   
   const [ startCoordinate, setStartCoordinate ] = useState(null);
   const [ endCoordinate, setEndCoordinate ] = useState(null);
 
   const [ selections, setSelections ] = useState([]);
-  const [ wordColors, setWordColors ] = useState({});
-  const [ usedColors, setUsedColors ] = useState(new Set());
+  const [ colorsInUse, setColorsInUse ] = useState(new Set());
 
   const getRandomColor = () => {
-    const letters = '0123456789ABCDEF';
-    let color = '#';
+    const hueColors = {
+      "Red": 0,
+      "Orange": 30,
+      "Yellow": 60,
+      "Lime": 90,
+      "Green": 120,
+      "Turquoise": 150,
+      "Cyan": 180,
+      "Blue": 210,
+      "Violet": 240,
+      "Purple": 270,
+      "Magenta": 300,
+      "Pink": 330,
+    }
 
-    do {
-      for (let i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
+    const hueValues = Object.values(hueColors);
+
+    let hue = hueValues[Math.floor(Math.random() * hueValues.length)];
+    const saturation = 100;
+    const lightness = 50;
+    const alpha = 0.5;
+
+    while (colorsInUse.has(hue)) {
+      let alternateHueIndex = Math.floor(Math.random() * hueValues.length);
+      let alternateHue = hueValues[alternateHueIndex];
+      if (alternateHue !== hue) {
+        hue = alternateHue;
+        break;
       }
-    } while (usedColors.has(color))
+    }
 
-    setUsedColors(new Set(usedColors).add(color))
+    const color = `hsl(${hue}, ${saturation}%, ${lightness}%, ${alpha})`;
+    setColorsInUse(prevColors => new Set(prevColors).add(hue))
+    console.log(colorsInUse);
 
     return color;
   }
 
   useEffect(() => {
-    const colors = {};
-    words.forEach((word) => {
-      colors[word] = getRandomColor();
-    });
-    setWordColors(colors);
-  }, [words]);
-
-  useEffect(() => {
-    handleScrambleGrid()
+    handleRefreshGrid()
   }, [])
 
   // Selection Functionality
@@ -61,14 +76,21 @@ const WordGrid = ({ words }) => {
     if (startCoordinate && endCoordinate) {
       const { cells, word } = getSelectedCells(startCoordinate, endCoordinate);
       const joinedWord = word.join('');
+      let color = getRandomColor();
+      console.log(color)
   
       if (joinedWord && WORDS.includes(joinedWord)) {
-        const color = getRandomColor();
-        setSelections([...selections, { cells, word: joinedWord, color }]);
-        setWordColors(prevColors => ({
-          ...prevColors,
-          [joinedWord]: color
-        }));
+        setSelections(prevSelections => [
+          ...prevSelections,
+          { cells, word: joinedWord, color: color }
+        ]);
+
+        // For Word Placement Map
+        setWordsFound(prevWordsFounds => {
+          const newWordsFound = new Map(prevWordsFounds);
+          newWordsFound.set(joinedWord, true);
+          return newWordsFound;
+        })
   
         const remainingWords = WORDS.filter(w => w !== joinedWord);
   
@@ -117,14 +139,7 @@ const WordGrid = ({ words }) => {
     return { cells: selectedCells, word: selectedWord }
   };
 
-  // const getWordFromCells = (selectedCells) => {
-  //   const word = selectedCells.map(cell => grid[cell.y][cell.x]).join('');
-  //   return word;
-  // };
-
-  const handleScrambleGrid = () => {
-    // const initialGrid = Array.from({ length: GRID_LENGTH }, () => Array.from({ length: GRID_LENGTH }, () => ''));
-    // setGrid(initialGrid);
+  const handleRefreshGrid = () => {
     updateWordGrid();
   }
 
@@ -161,7 +176,6 @@ const WordGrid = ({ words }) => {
 
   const updateWordGrid = () => {
     let newGrid = Array.from({ length: GRID_LENGTH }, () => Array.from({ length: GRID_LENGTH }, () => ''));
-    const newWordPlacementMap = new Map();
     // Sorting Words By Length In DESC Order
     const sortedWords = WORDS.sort((a, b) => b.length - a.length);
 
@@ -198,7 +212,6 @@ const WordGrid = ({ words }) => {
         if (newGridAttempt !== null) {
           placed = true;
           newGrid = newGridAttempt;
-          newWordPlacementMap.set(word, 'YES');
         }
         attempts++;
       }
@@ -206,7 +219,8 @@ const WordGrid = ({ words }) => {
 
     fillEmptySpaces(newGrid);
     setGrid(newGrid);
-    setWordPlacementMap(newWordPlacementMap)
+    setSelections([]);
+    setColorsInUse(new Set());
   };
 
   const fillEmptySpaces = (grid) => {
@@ -229,7 +243,7 @@ const WordGrid = ({ words }) => {
   return (
     <>
       <h2>Word Search</h2>
-      <button onClick={handleScrambleGrid}>Randomize Grid</button>
+      <button onClick={ handleRefreshGrid }>Shuffle</button>
       <table className="word-grid">
         <tbody>
           {grid.map((row, rowIndex) => (
@@ -258,11 +272,11 @@ const WordGrid = ({ words }) => {
 
                 return (
                   <td
-                    key={columnIndex}
-                    onMouseDown={() => handleMouseDown(rowIndex, columnIndex)}
-                    onMouseOver={() => handleMouseOver(rowIndex, columnIndex)}
-                    onMouseUp={handleMouseUp}
-                    className={isSelected ? `selected ${selectedInfo.word}` : ''}
+                    key={ columnIndex }
+                    onMouseDown={ () => handleMouseDown(rowIndex, columnIndex) }
+                    onMouseOver={ () => handleMouseOver(rowIndex, columnIndex) }
+                    onMouseUp={ handleMouseUp }
+                    className={ isSelected ? `selected ${selectedInfo.word}` : '' }
                     style={{ backgroundColor: isSelected ? selectedInfo.color : '' }}
                   >
                     {cell}
@@ -277,8 +291,11 @@ const WordGrid = ({ words }) => {
         <h3>Word Placement Map</h3>
         <ul>
           {WORDS.map((word) => (
-            <li key={word}>
-              {word}: {wordPlacementMap.get(word) || 'NO'}
+            <li 
+              key={word}
+              className={ wordsFound.get(word) ? "strikethrough" : "" }
+              >
+              {word}
             </li>
           ))}
         </ul>
