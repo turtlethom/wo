@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import './WordGrid.css';
+import WordList from "../WordList/WordList";
+import Cell from "../Cell/Cell";
 
 const WordGrid = ({ words }) => {
   // Grid Size Control
@@ -218,6 +220,7 @@ const WordGrid = ({ words }) => {
     });
 
     fillEmptySpaces(newGrid);
+    console.log(newGrid)
     setGrid(newGrid);
     setSelections([]);
     setColorsInUse(new Set());
@@ -271,35 +274,23 @@ const WordGrid = ({ words }) => {
                   );
 
                 return (
-                  <td
-                    key={ columnIndex }
-                    onMouseDown={ () => handleMouseDown(rowIndex, columnIndex) }
-                    onMouseOver={ () => handleMouseOver(rowIndex, columnIndex) }
-                    onMouseUp={ handleMouseUp }
-                    className={ isSelected ? `selected ${selectedInfo.word}` : '' }
-                    style={{ backgroundColor: isSelected ? selectedInfo.color : '' }}
-                  >
-                    {cell}
-                  </td>
+                  <Cell 
+                    key={columnIndex}
+                    cellCoord={cellCoord}
+                    isSelected={isSelected}
+                    selectedInfo={selectedInfo}
+                    letter={grid[cellCoord.y][cellCoord.x]}
+                    handleMouseDown={handleMouseDown}
+                    handleMouseOver={handleMouseOver}
+                    handleMouseUp={handleMouseUp}
+                    />
                 );
               })}
             </tr>
           ))}
         </tbody>
       </table>
-      <div>
-        <h3>Word Placement Map</h3>
-        <ul>
-          {WORDS.map((word) => (
-            <li 
-              key={word}
-              className={ wordsFound.get(word) ? "strikethrough" : "" }
-              >
-              {word}
-            </li>
-          ))}
-        </ul>
-      </div>
+      <WordList words={WORDS} wordsFound={wordsFound} />
     </>
   );
 
