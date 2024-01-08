@@ -9,7 +9,7 @@ function App() {
 
   function generateWords() {
     return generate({
-      exactly: 8,
+      exactly: 10,
       maxLength: 10,
       formatter: (word) => word.toUpperCase(), 
     });

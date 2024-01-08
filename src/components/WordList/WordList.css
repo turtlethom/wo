@@ -1,3 +1,52 @@
+.word-list-container {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    max-width: 440px; /* Adjust the maximum width as needed */
+    margin: 0 auto; /* Center the container */
+    margin-top: 20px;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+li {
+    width: calc(25% - 10px); /* Adjust the width to create 4 columns with some spacing */
+    margin-bottom: 10px;
+    text-align: center;
+    border: 1px solid #ddd;
+    padding: 5px;
+    position: relative; /* Needed for absolute positioning of the animation element */
+}
+
 .strikethrough {
-    text-decoration: line-through;
+    text-decoration: none; /* Remove the default line-through */
+    position: relative;
+    overflow: hidden;
+}
+
+.strikethrough::after {
+    content: "";
+    display: block;
+    width: 0; /* Start with the width at 0 */
+    height: 2px;
+    background-color: #333; /* Adjust the color of the strike-through line */
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform-origin: left;
+    clip-path: polygon(0 0, 0 100%, 0% 100%, 0% 0%);
+    animation: strikethroughAnimation 0.3s forwards; /* Animation definition */
+}
+
+@keyframes strikethroughAnimation {
+    to {
+        width: 100%; /* Animate from 0 to 100% width */
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+    }
 }

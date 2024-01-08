@@ -5,7 +5,7 @@ import Cell from "../Cell/Cell";
 
 const WordGrid = ({ words }) => {
   // Grid Size Control
-  const GRID_LENGTH = 14
+  const GRID_LENGTH = 15
   const WORDS = words;
   // console.log(WORDS)
   
@@ -19,43 +19,29 @@ const WordGrid = ({ words }) => {
   const [ colorsInUse, setColorsInUse ] = useState(new Set());
 
   const getRandomColor = () => {
-    const hueColors = {
-      "Red": 0,
-      "Orange": 30,
-      "Yellow": 60,
-      "Lime": 90,
-      "Green": 120,
-      "Turquoise": 150,
-      "Cyan": 180,
-      "Blue": 210,
-      "Violet": 240,
-      "Purple": 270,
-      "Magenta": 300,
-      "Pink": 330,
-    }
+    // Separated To Control Colors
+    // Potentially use `secondaryHueValues` For More Possible Words
+    const mainHueValues = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330];  // 12 possible colors
+    // const secondaryHueValues = [15, 45, 75, 105, 135, 165, 195, 225, 255];
 
-    const hueValues = Object.values(hueColors);
-
-    let hue = hueValues[Math.floor(Math.random() * hueValues.length)];
+    // const allHueValues = [...mainHueValues, ...secondaryHueValues]
     const saturation = 100;
     const lightness = 50;
     const alpha = 0.5;
 
-    while (colorsInUse.has(hue)) {
-      let alternateHueIndex = Math.floor(Math.random() * hueValues.length);
-      let alternateHue = hueValues[alternateHueIndex];
-      if (alternateHue !== hue) {
-        hue = alternateHue;
-        break;
-      }
+    let hue = mainHueValues[Math.floor(Math.random() * mainHueValues.length)];
+    let color = `hsla(${hue}, ${saturation}%, ${lightness}%, ${alpha})`;
+
+    // Ensure that the color is not reused
+    while (colorsInUse.has(color)) {
+      hue = mainHueValues[Math.floor(Math.random() * mainHueValues.length)];
+      color = `hsla(${hue}, ${saturation}%, ${lightness}%, ${alpha})`;
     }
 
-    const color = `hsl(${hue}, ${saturation}%, ${lightness}%, ${alpha})`;
-    setColorsInUse(prevColors => new Set(prevColors).add(hue))
-    console.log(colorsInUse);
+    setColorsInUse(prevColors => new Set([...prevColors, color]));
 
     return color;
-  }
+  };
 
   useEffect(() => {
     handleRefreshGrid()
@@ -82,10 +68,10 @@ const WordGrid = ({ words }) => {
       console.log(color)
   
       if (joinedWord && WORDS.includes(joinedWord)) {
-        setSelections(prevSelections => [
-          ...prevSelections,
-          { cells, word: joinedWord, color: color }
-        ]);
+        setSelections(prevSelections => {
+          const newSelection = { cells, word: joinedWord, color: color };
+          return [...prevSelections, newSelection];
+        });
 
         // For Word Placement Map
         setWordsFound(prevWordsFounds => {
@@ -245,7 +231,6 @@ const WordGrid = ({ words }) => {
 
   return (
     <>
-      <h2>Word Search</h2>
       <button onClick={ handleRefreshGrid }>Shuffle</button>
       <table className="word-grid">
         <tbody>
