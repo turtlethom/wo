@@ -4,8 +4,6 @@ import WordGrid from './components/WordGrid/WordGrid';
 import { generate } from 'random-words';
 
 function App() {
-  
-  
   // Word Search Game Controllers
   const [ gridSize, setGridSize ] = useState(15);
   const [ wordComplexity, setWordComplexity ] = useState({
@@ -14,7 +12,7 @@ function App() {
     maxLength: 10,
     formatter: (word) => word.toUpperCase(),
   });
-  
+
   const generateWords = () => generate(wordComplexity);
   const [ words, setWords ] = useState(generateWords());
   

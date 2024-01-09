@@ -2,6 +2,9 @@ import React, { useEffect, useState, useRef } from "react";
 import './WordGrid.css';
 import WordList from "../WordList/WordList";
 import Cell from "../Cell/Cell";
+import placeWord from "../../utils/wordUtils";
+import getRandomColor from "../../utils/colorUtils";
+import { fillEmptySpaces } from "../../utils/gridUtils";
 
 const WordGrid = ({ words, gridSize }) => {
   
@@ -15,31 +18,7 @@ const WordGrid = ({ words, gridSize }) => {
   const [ colorsInUse, setColorsInUse ] = useState(new Set());
   const [ remainingWords, setRemainingWords ] = useState([...words]);
 
-  const getRandomColor = () => {
-    // Separated To Control Colors
-    // Potentially use `secondaryHueValues` For More Possible Words
-    const mainHueValues = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330];  // 12 possible colors
-    // const secondaryHueValues = [15, 45, 75, 105, 135, 165, 195, 225, 255];
-
-    // const allHueValues = [...mainHueValues, ...secondaryHueValues]
-    const saturation = 100;
-    const lightness = 50;
-    const alpha = 0.7;  // More adjustable, but
-
-    let hue = mainHueValues[Math.floor(Math.random() * mainHueValues.length)];
-    let color = `hsla(${hue}, ${saturation}%, ${lightness}%, ${alpha})`;
-
-    // Ensure that the color is not reused
-    while (colorsInUse.has(color)) {
-      hue = mainHueValues[Math.floor(Math.random() * mainHueValues.length)];
-      color = `hsla(${hue}, ${saturation}%, ${lightness}%, ${alpha})`;
-    }
-
-    setColorsInUse(prevColors => new Set([...prevColors, color]));
-
-    return color;
-  };
-
+  // Initial Render
   useEffect(() => {
     setGrid(grid)
   }, [])
@@ -68,10 +47,10 @@ const WordGrid = ({ words, gridSize }) => {
       // Checking If User Selection Is Valid
       if (joinedWord && words.includes(joinedWord)) {
 
-        let color = getRandomColor();
+        let color = getRandomColor(colorsInUse);
         // Debug Invalid Selections --- Ensure Colors Are Not Accidently Excluded From Invalid User Selections
         console.log(`Current User Selection: ${joinedWord}`)
-        console.log(`Selection's Made: ${colorsInUse.size + 1} ===> ${color}}`);
+        console.log(`Selection's Made: ${colorsInUse.size} ===> ${color}}`);
 
         // Tracking & Updating Total User Selections
         setSelections(prevSelections => {
@@ -150,37 +129,6 @@ const WordGrid = ({ words, gridSize }) => {
     updateWordGrid();
   }
 
-  const placeWord = (grid, word, row, col, direction) => {
-    const newGrid = grid.map(row => row.map(cell => cell));
-
-    for (let i = 0; i < word.length; i++) {
-      const currentRow = row + (direction === 'vertical' ? i : direction.startsWith('diagonal') ? i : 0);
-      const currentCol = col + (direction === 'horizontal' ? i : direction === 'diagonal-up' ? i : -i);
-
-      if (
-        currentRow < 0 ||
-        currentRow >= grid.length ||
-        currentCol < 0 ||
-        currentCol >= grid[0].length
-      ) {
-        return null; // Invalid placement, abort and retry
-      }
-
-      // Check if cell is already occupied by a different character
-      if (newGrid[currentRow][currentCol] !== '') {
-        if (newGrid[currentRow][currentCol] !== word[i]) {
-          return null; // Invalid placement, abort and retry
-        } else {
-          continue;
-        }
-      }
-
-      newGrid[currentRow][currentCol] = word[i];
-    }
-
-    return newGrid;
-  };
-
   const updateWordGrid = () => {
     let newGrid = Array.from({ length: gridSize }, () => Array.from({ length: gridSize }, () => ''));
     // Sorting Words By Length In DESC Order
@@ -233,27 +181,12 @@ const WordGrid = ({ words, gridSize }) => {
       }
       // ==============================================================================
     });
-
+    // Fill Grid && Reset Grid Controls
     fillEmptySpaces(newGrid);
     setGrid(newGrid);
     setSelections([]);
     setColorsInUse(new Set());
-    setRemainingWords([...words])
-  };
-
-  const fillEmptySpaces = (grid) => {
-    for (let row = 0; row < grid.length; row++) {
-      for (let col = 0; col < grid[0].length; col++) {
-        if (grid[row][col] === '') {
-          grid[row][col] = getRandomLetter();
-        }
-      }
-    }
-  };
-
-  const getRandomLetter = () => {
-    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    return alphabet[Math.floor(Math.random() * alphabet.length)];
+    setRemainingWords([...words]);
   };
 
   // ... (previous code)
