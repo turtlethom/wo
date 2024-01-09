@@ -3,13 +3,9 @@ import './WordGrid.css';
 import WordList from "../WordList/WordList";
 import Cell from "../Cell/Cell";
 
-const WordGrid = ({ words }) => {
-  // Grid Size Control
-  const GRID_LENGTH = 15
-  const WORDS = words;
-  // console.log(WORDS)
+const WordGrid = ({ words, gridSize }) => {
   
-  const [ grid, setGrid ] = useState(Array.from({ length: GRID_LENGTH }, () => Array.from({ length: GRID_LENGTH }, () => '')));
+  const [ grid, setGrid ] = useState(Array.from({ length: gridSize }, () => Array.from({ length: gridSize }, () => '')));
   const [ wordsFound, setWordsFound ] = useState(new Map());
   
   const [ startCoordinate, setStartCoordinate ] = useState(null);
@@ -17,6 +13,7 @@ const WordGrid = ({ words }) => {
 
   const [ selections, setSelections ] = useState([]);
   const [ colorsInUse, setColorsInUse ] = useState(new Set());
+  const [ remainingWords, setRemainingWords ] = useState([...words]);
 
   const getRandomColor = () => {
     // Separated To Control Colors
@@ -27,7 +24,7 @@ const WordGrid = ({ words }) => {
     // const allHueValues = [...mainHueValues, ...secondaryHueValues]
     const saturation = 100;
     const lightness = 50;
-    const alpha = 0.5;
+    const alpha = 0.7;  // More adjustable, but
 
     let hue = mainHueValues[Math.floor(Math.random() * mainHueValues.length)];
     let color = `hsla(${hue}, ${saturation}%, ${lightness}%, ${alpha})`;
@@ -44,59 +41,81 @@ const WordGrid = ({ words }) => {
   };
 
   useEffect(() => {
-    handleRefreshGrid()
+    setGrid(grid)
   }, [])
 
   // Selection Functionality
 
   const handleMouseDown = (rowIndex, columnIndex) => {
+    // Initializing The Start Of The User Selection
     setStartCoordinate({ x: columnIndex, y: rowIndex });
     setEndCoordinate({ x: columnIndex, y: rowIndex });
   }
 
   const handleMouseOver = (rowIndex, columnIndex) => {
+    // Update `EndCoordinate` Upon User Dragging Mouse Over Cells
     if (startCoordinate) {
       setEndCoordinate({ x: columnIndex, y: rowIndex });
     }
   }
 
   const handleMouseUp = () => {
+    // Initialize If A Selection Has Been Made By The User
     if (startCoordinate && endCoordinate) {
       const { cells, word } = getSelectedCells(startCoordinate, endCoordinate);
       const joinedWord = word.join('');
-      let color = getRandomColor();
-      console.log(color)
-  
-      if (joinedWord && WORDS.includes(joinedWord)) {
+      
+      // Checking If User Selection Is Valid
+      if (joinedWord && words.includes(joinedWord)) {
+
+        let color = getRandomColor();
+        // Debug Invalid Selections --- Ensure Colors Are Not Accidently Excluded From Invalid User Selections
+        console.log(`Current User Selection: ${joinedWord}`)
+        console.log(`Selection's Made: ${colorsInUse.size + 1} ===> ${color}}`);
+
+        // Tracking & Updating Total User Selections
         setSelections(prevSelections => {
           const newSelection = { cells, word: joinedWord, color: color };
+
           return [...prevSelections, newSelection];
         });
 
-        // For Word Placement Map
+        // Tracking & Updating Total Words Found
         setWordsFound(prevWordsFounds => {
           const newWordsFound = new Map(prevWordsFounds);
           newWordsFound.set(joinedWord, true);
+
           return newWordsFound;
         })
-  
-        const remainingWords = WORDS.filter(w => w !== joinedWord);
-  
-        if (remainingWords.length === 0) {
-          // Something happens, e.g., show a restart pop-up
-        }
+        
+        // Tracking Remaining Words
+        setRemainingWords(prevRemainingWords => {
+          const updatedRemainingWords = prevRemainingWords.filter(w => w !== joinedWord);
+          console.log(`Remaining Words Left To Find: ${updatedRemainingWords}`);
+
+          if (updatedRemainingWords.length === 0) {
+            // Something happens, e.g., show a restart pop-up
+            console.log("No remaining words!");
+          }
+
+          return updatedRemainingWords;
+        })
+
+
       } else {
+        // DEBUG
         console.log(`${joinedWord} is not one of the valid words`);
       }
     }
-  
+    
+    // Reset Coordinates For Next User Selection
     setStartCoordinate(null);
     setEndCoordinate(null);
   };
   
 
   const getSelectedCells = (startCoord, endCoord) => {
-    // Bresenham's line algorithm
+    // **** Bresenham's Line Algorithm ****
     const selectedCells = [];
     let x = startCoord.x;
     let y = startCoord.y;
@@ -127,7 +146,7 @@ const WordGrid = ({ words }) => {
     return { cells: selectedCells, word: selectedWord }
   };
 
-  const handleRefreshGrid = () => {
+  const refreshGrid = () => {
     updateWordGrid();
   }
 
@@ -163,9 +182,9 @@ const WordGrid = ({ words }) => {
   };
 
   const updateWordGrid = () => {
-    let newGrid = Array.from({ length: GRID_LENGTH }, () => Array.from({ length: GRID_LENGTH }, () => ''));
+    let newGrid = Array.from({ length: gridSize }, () => Array.from({ length: gridSize }, () => ''));
     // Sorting Words By Length In DESC Order
-    const sortedWords = WORDS.sort((a, b) => b.length - a.length);
+    const sortedWords = words.sort((a, b) => b.length - a.length);
 
     sortedWords.forEach(word => {
       let placed = false;
@@ -186,14 +205,14 @@ const WordGrid = ({ words }) => {
         let row, col;
   
         if (direction.startsWith('horizontal')) {
-          row = Math.floor(Math.random() * GRID_LENGTH);
-          col = Math.floor(Math.random() * (GRID_LENGTH - wordLength + 1));
+          row = Math.floor(Math.random() * gridSize);
+          col = Math.floor(Math.random() * (gridSize - wordLength + 1));
         } else if (direction.startsWith('vertical')) {
-          row = Math.floor(Math.random() * (GRID_LENGTH - wordLength + 1));
-          col = Math.floor(Math.random() * GRID_LENGTH);
+          row = Math.floor(Math.random() * (gridSize - wordLength + 1));
+          col = Math.floor(Math.random() * gridSize);
         } else {
-          row = Math.floor(Math.random() * (GRID_LENGTH - wordLength + 1));
-          col = Math.floor(Math.random() * (GRID_LENGTH - wordLength + 1));
+          row = Math.floor(Math.random() * (gridSize - wordLength + 1));
+          col = Math.floor(Math.random() * (gridSize - wordLength + 1));
         }
   
         const newGridAttempt = placeWord(newGrid, word, row, col, direction);
@@ -203,13 +222,23 @@ const WordGrid = ({ words }) => {
         }
         attempts++;
       }
+
+      // DEBUG WORD PLACEMENT ON GRID
+      // ==============================================================================
+      const misplacedWords = words.filter(w => !sortedWords.includes(w));
+      if (misplacedWords.length === 0) {
+        console.log("**** SUCCESS: All words have been placed on the grid ****")
+      } else {
+        console.log(`**** ERROR: Words not placed on the grid: ${misplacedWords.forEach(word => word)} ****`)
+      }
+      // ==============================================================================
     });
 
     fillEmptySpaces(newGrid);
-    console.log(newGrid)
     setGrid(newGrid);
     setSelections([]);
     setColorsInUse(new Set());
+    setRemainingWords([...words])
   };
 
   const fillEmptySpaces = (grid) => {
@@ -231,7 +260,7 @@ const WordGrid = ({ words }) => {
 
   return (
     <>
-      <button onClick={ handleRefreshGrid }>Shuffle</button>
+      <button onClick={ refreshGrid }>Shuffle</button>
       <table className="word-grid">
         <tbody>
           {grid.map((row, rowIndex) => (
@@ -275,7 +304,7 @@ const WordGrid = ({ words }) => {
           ))}
         </tbody>
       </table>
-      <WordList words={WORDS} wordsFound={wordsFound} />
+      <WordList words={words} wordsFound={wordsFound} />
     </>
   );
 

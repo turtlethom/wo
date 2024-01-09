@@ -4,27 +4,39 @@ import WordGrid from './components/WordGrid/WordGrid';
 import { generate } from 'random-words';
 
 function App() {
-
+  
+  
+  // Word Search Game Controllers
+  const [ gridSize, setGridSize ] = useState(15);
+  const [ wordComplexity, setWordComplexity ] = useState({
+    exactly: 10,
+    minLength: 5,
+    maxLength: 10,
+    formatter: (word) => word.toUpperCase(),
+  });
+  
+  const generateWords = () => generate(wordComplexity);
   const [ words, setWords ] = useState(generateWords());
+  
+  
+  // function generateWords() {
+  //   return generate({
+  //     exactly: 10,
+  //     maxLength: 10,
+  //     formatter: (word) => word.toUpperCase(), 
+  //   });
+  // }
+  // console.log(words)
 
-  function generateWords() {
-    return generate({
-      exactly: 10,
-      maxLength: 10,
-      formatter: (word) => word.toUpperCase(), 
-    });
-  }
-  console.log(words)
-  // const words = ["EXAMPLE", "TEST", "GRID", "SEARCH", "WORD", "PUZZLE", "DEVELOPER", "REACT"];
-  const handleGenerateClick = () => {
+  const handleGenerateNewWords = () => {
     setWords(generateWords());
   }
   return (
     <>
       <div>
         <h1>Word Search Game</h1>
-        <button onClick={handleGenerateClick}>Change Words</button>
-        <WordGrid words={words}/>
+        <button onClick={handleGenerateNewWords}>Change Words</button>
+        <WordGrid words={words} gridSize={gridSize} />
       </div>
     </>
   )
