@@ -4,7 +4,7 @@ import WordList from "../WordList/WordList";
 import Cell from "../Cell/Cell";
 import placeWord from "../../utils/wordUtils";
 import getRandomColor from "../../utils/colorUtils";
-import { fillEmptySpaces } from "../../utils/gridUtils";
+import { fillEmptySpaces, getRandomLetter } from "../../utils/gridUtils";
 
 const WordGrid = ({ words, gridSize }) => {
   
@@ -91,7 +91,6 @@ const WordGrid = ({ words, gridSize }) => {
     setStartCoordinate(null);
     setEndCoordinate(null);
   };
-  
 
   const getSelectedCells = (startCoord, endCoord) => {
     // **** Bresenham's Line Algorithm ****
