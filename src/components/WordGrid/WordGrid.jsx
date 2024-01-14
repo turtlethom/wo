@@ -18,6 +18,8 @@ const WordGrid = ({ words, gridSize }) => {
   const [ colorsInUse, setColorsInUse ] = useState(new Set());
   const [ remainingWords, setRemainingWords ] = useState([...words]);
 
+  const [ trackedSelection, setTrackedSelection ] = useState([]);
+
   // Initial Render
   useEffect(() => {
     setGrid(grid)
@@ -29,12 +31,18 @@ const WordGrid = ({ words, gridSize }) => {
     // Initializing The Start Of The User Selection
     setStartCoordinate({ x: columnIndex, y: rowIndex });
     setEndCoordinate({ x: columnIndex, y: rowIndex });
+    setTrackedSelection([grid[rowIndex][columnIndex]])
   }
 
   const handleMouseOver = (rowIndex, columnIndex) => {
-    // Update `EndCoordinate` Upon User Dragging Mouse Over Cells
     if (startCoordinate) {
+      const { cells, word } = getSelectedCells(startCoordinate, endCoordinate);
+      const joinedWord = word.join('');
+      
+      // Update `EndCoordinate` Upon User Dragging Mouse Over Cells
       setEndCoordinate({ x: columnIndex, y: rowIndex });
+      // Setting Tracked Selection
+      setTrackedSelection(joinedWord.split(''))
     }
   }
 
@@ -192,7 +200,7 @@ const WordGrid = ({ words, gridSize }) => {
 
   return (
     <>
-      <button onClick={ refreshGrid }>Shuffle</button>
+      <button onClick={refreshGrid}>Shuffle</button>
       <table className="word-grid">
         <tbody>
           {grid.map((row, rowIndex) => (
@@ -219,24 +227,53 @@ const WordGrid = ({ words, gridSize }) => {
                       )
                   );
 
+                  const isTrackedSelection =
+                    startCoordinate &&
+                    endCoordinate &&
+                    (
+                      // Diagonal Up
+                      (
+                        Math.abs(cellCoord.x - startCoordinate.x) === Math.abs(cellCoord.y - startCoordinate.y) &&
+                        startCoordinate.x !== endCoordinate.x && startCoordinate.y !== endCoordinate.y &&
+                        ((startCoordinate.x < endCoordinate.x && cellCoord.x >= startCoordinate.x && cellCoord.x <= endCoordinate.x) ||
+                        (startCoordinate.x > endCoordinate.x && cellCoord.x <= startCoordinate.x && cellCoord.x >= endCoordinate.x)) &&
+                        ((startCoordinate.y < endCoordinate.y && cellCoord.y >= startCoordinate.y && cellCoord.y <= endCoordinate.y) ||
+                        (startCoordinate.y > endCoordinate.y && cellCoord.y <= startCoordinate.y && cellCoord.y >= endCoordinate.y))
+                      ) ||
+                      // Diagonal Down
+                      (
+                        Math.abs(cellCoord.x - startCoordinate.x) === Math.abs(cellCoord.y - startCoordinate.y) &&
+                        startCoordinate.x !== endCoordinate.x && startCoordinate.y !== endCoordinate.y &&
+                        ((startCoordinate.x < endCoordinate.x && cellCoord.x >= startCoordinate.x && cellCoord.x <= endCoordinate.x) ||
+                        (startCoordinate.x > endCoordinate.x && cellCoord.x <= startCoordinate.x && cellCoord.x >= endCoordinate.x)) &&
+                        ((startCoordinate.y < endCoordinate.y && cellCoord.y <= startCoordinate.y && cellCoord.y >= endCoordinate.y) ||
+                        (startCoordinate.y > endCoordinate.y && cellCoord.y >= startCoordinate.y && cellCoord.y <= endCoordinate.y))
+                      )
+                    ) &&
+                    // Ensure the cell is within the grid bounds
+                    cellCoord.x >= 0 && cellCoord.x < gridSize && cellCoord.y >= 0 && cellCoord.y < gridSize;
+
+
+
                 return (
                   <Cell 
                     key={columnIndex}
                     cellCoord={cellCoord}
                     isSelected={isSelected}
+                    isTrackedSelection={isTrackedSelection}
                     selectedInfo={selectedInfo}
                     letter={grid[cellCoord.y][cellCoord.x]}
                     handleMouseDown={handleMouseDown}
                     handleMouseOver={handleMouseOver}
                     handleMouseUp={handleMouseUp}
-                    />
+                  />
                 );
               })}
             </tr>
           ))}
         </tbody>
       </table>
-      <WordList words={words} wordsFound={wordsFound} />
+      <WordList words={words} wordsFound={wordsFound}/>
     </>
   );
 
