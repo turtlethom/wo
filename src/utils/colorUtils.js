@@ -7,7 +7,7 @@ const getRandomColor = (colorsInUse) => {
     // const allHueValues = [...mainHueValues, ...secondaryHueValues]
     const saturation = 100;
     const lightness = 50;
-    const alpha = 0.7;  // More adjustable, but
+    const alpha = 0.7;  // More adjustable
 
     let hue = mainHueValues[Math.floor(Math.random() * mainHueValues.length)];
     let color = `hsla(${hue}, ${saturation}%, ${lightness}%, ${alpha})`;

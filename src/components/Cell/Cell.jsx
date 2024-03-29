@@ -9,21 +9,20 @@ const Cell = ({ cellCoord, isSelected, isTrackedSelection, selectedInfo, letter,
     const [cellColor, setCellColor ] = useState(color);
     const [trackedColor, setTrackedColor ] = useState('#a0a0a0');
     const [hasAssignedTrackedColor, setHasAssignedTrackedColor] = useState(false);
+
     // Update usedColors & Make Unavailable For Future User Selections.
     useEffect(() => {
         setCellColor(color);
     }, [color])
 
+    // Handles trackedSelection Color
     useEffect(() => {
-        if (isTrackedSelection && !hasAssignedTrackedColor) {
-            const newTrackedColor = getRandomColor(new Set([cellColor, trackedColor]))
-            setTrackedColor(newTrackedColor);
-            setHasAssignedTrackedColor(true); // Assign a random color for tracked selections
-        } else if (!isTrackedSelection) {
-            setTrackedColor('#a0a0a0'); // Reset to default when tracking is over
+        if (!isTrackedSelection && hasAssignedTrackedColor) {
+            // Reset to default when tracking is over
+            setTrackedColor('#a0a0a0');
             setHasAssignedTrackedColor(false);
         }
-    }, [isTrackedSelection, cellColor, trackedColor, hasAssignedTrackedColor]);
+    }, [isTrackedSelection, hasAssignedTrackedColor]);
     
     const backgroundColor = isTrackedSelection ? trackedColor : isSelected ? cellColor : '';
     return (
