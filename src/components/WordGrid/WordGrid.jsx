@@ -21,9 +21,9 @@ const WordGrid = ({ words, gridSize }) => {
   const [ trackedSelection, setTrackedSelection ] = useState([]);
 
   // Initial Render
-  useEffect(() => {
-    setGrid(grid)
-  }, [])
+  // useEffect(() => {
+  //   setGrid(grid)
+  // }, [])
 
   // Selection Functionality
 
