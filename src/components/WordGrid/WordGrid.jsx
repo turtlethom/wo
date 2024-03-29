@@ -228,30 +228,48 @@ const WordGrid = ({ words, gridSize }) => {
                   );
 
                   const isTrackedSelection =
-                    startCoordinate &&
-                    endCoordinate &&
-                    (
-                      // Diagonal Up
-                      (
-                        Math.abs(cellCoord.x - startCoordinate.x) === Math.abs(cellCoord.y - startCoordinate.y) &&
-                        startCoordinate.x !== endCoordinate.x && startCoordinate.y !== endCoordinate.y &&
-                        ((startCoordinate.x < endCoordinate.x && cellCoord.x >= startCoordinate.x && cellCoord.x <= endCoordinate.x) ||
-                        (startCoordinate.x > endCoordinate.x && cellCoord.x <= startCoordinate.x && cellCoord.x >= endCoordinate.x)) &&
-                        ((startCoordinate.y < endCoordinate.y && cellCoord.y >= startCoordinate.y && cellCoord.y <= endCoordinate.y) ||
-                        (startCoordinate.y > endCoordinate.y && cellCoord.y <= startCoordinate.y && cellCoord.y >= endCoordinate.y))
-                      ) ||
-                      // Diagonal Down
-                      (
-                        Math.abs(cellCoord.x - startCoordinate.x) === Math.abs(cellCoord.y - startCoordinate.y) &&
-                        startCoordinate.x !== endCoordinate.x && startCoordinate.y !== endCoordinate.y &&
-                        ((startCoordinate.x < endCoordinate.x && cellCoord.x >= startCoordinate.x && cellCoord.x <= endCoordinate.x) ||
-                        (startCoordinate.x > endCoordinate.x && cellCoord.x <= startCoordinate.x && cellCoord.x >= endCoordinate.x)) &&
-                        ((startCoordinate.y < endCoordinate.y && cellCoord.y <= startCoordinate.y && cellCoord.y >= endCoordinate.y) ||
-                        (startCoordinate.y > endCoordinate.y && cellCoord.y >= startCoordinate.y && cellCoord.y <= endCoordinate.y))
-                      )
-                    ) &&
-                    // Ensure the cell is within the grid bounds
-                    cellCoord.x >= 0 && cellCoord.x < gridSize && cellCoord.y >= 0 && cellCoord.y < gridSize;
+                  startCoordinate &&
+                  endCoordinate &&
+                  (
+                    // Horizontal
+                    (startCoordinate.y === endCoordinate.y && cellCoord.y === startCoordinate.y &&
+                      ((startCoordinate.x < endCoordinate.x && cellCoord.x >= startCoordinate.x && cellCoord.x <= endCoordinate.x) ||
+                      (startCoordinate.x > endCoordinate.x && cellCoord.x <= startCoordinate.x && cellCoord.x >= endCoordinate.x))
+                    ) ||
+                    // Horizontal Reverse
+                    (startCoordinate.y === endCoordinate.y && cellCoord.y === startCoordinate.y &&
+                      ((startCoordinate.x < endCoordinate.x && cellCoord.x <= startCoordinate.x && cellCoord.x >= endCoordinate.x) ||
+                      (startCoordinate.x > endCoordinate.x && cellCoord.x >= startCoordinate.x && cellCoord.x <= endCoordinate.x))
+                    ) ||
+                    // Vertical
+                    (startCoordinate.x === endCoordinate.x && cellCoord.x === startCoordinate.x &&
+                      ((startCoordinate.y < endCoordinate.y && cellCoord.y >= startCoordinate.y && cellCoord.y <= endCoordinate.y) ||
+                      (startCoordinate.y > endCoordinate.y && cellCoord.y <= startCoordinate.y && cellCoord.y >= endCoordinate.y))
+                    ) ||
+                    // Vertical Reverse
+                    (startCoordinate.x === endCoordinate.x && cellCoord.x === startCoordinate.x &&
+                      ((startCoordinate.y < endCoordinate.y && cellCoord.y <= startCoordinate.y && cellCoord.y >= endCoordinate.y) ||
+                      (startCoordinate.y > endCoordinate.y && cellCoord.y >= startCoordinate.y && cellCoord.y <= endCoordinate.y))
+                    ) ||
+                    // Diagonal Up
+                    (Math.abs(cellCoord.x - startCoordinate.x) === Math.abs(cellCoord.y - startCoordinate.y) &&
+                      startCoordinate.x !== endCoordinate.x && startCoordinate.y !== endCoordinate.y &&
+                      ((startCoordinate.x < endCoordinate.x && cellCoord.x >= startCoordinate.x && cellCoord.x <= endCoordinate.x) ||
+                      (startCoordinate.x > endCoordinate.x && cellCoord.x <= startCoordinate.x && cellCoord.x >= endCoordinate.x)) &&
+                      ((startCoordinate.y < endCoordinate.y && cellCoord.y >= startCoordinate.y && cellCoord.y <= endCoordinate.y) ||
+                      (startCoordinate.y > endCoordinate.y && cellCoord.y <= startCoordinate.y && cellCoord.y >= endCoordinate.y))
+                    ) ||
+                    // Diagonal Down
+                    (Math.abs(cellCoord.x - startCoordinate.x) === Math.abs(cellCoord.y - startCoordinate.y) &&
+                      startCoordinate.x !== endCoordinate.x && startCoordinate.y !== endCoordinate.y &&
+                      ((startCoordinate.x < endCoordinate.x && cellCoord.x >= startCoordinate.x && cellCoord.x <= endCoordinate.x) ||
+                      (startCoordinate.x > endCoordinate.x && cellCoord.x <= startCoordinate.x && cellCoord.x >= endCoordinate.x)) &&
+                      ((startCoordinate.y < endCoordinate.y && cellCoord.y <= startCoordinate.y && cellCoord.y >= endCoordinate.y) ||
+                      (startCoordinate.y > endCoordinate.y && cellCoord.y >= startCoordinate.y && cellCoord.y <= endCoordinate.y))
+                    )
+                  ) &&
+                  // Ensure the cell is within the grid bounds
+                  cellCoord.x >= 0 && cellCoord.x < gridSize && cellCoord.y >= 0 && cellCoord.y < gridSize;
 
 
 

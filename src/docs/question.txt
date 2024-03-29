@@ -1,0 +1,22 @@
+Current Problem:
+
+- Please use code above for reference
+
+I want trackedSelection to allow the user to highlight/change background colors of cells within their current selection.
+For Example:
+    grid is 10 cells by 10 cells.
+    If user selects "X", they have the option to highlight in any direction.
+    // EXAMPLE OF CELLS IN PORTION OF GRID //
+    A B C
+    D X E
+    F G H
+    However, there should be restrictions to the user's selection. Here's some scenerios of cells selected:
+    If "X" than "XE", user can only select horizontally in the direction selected, as "E" is horizontal.
+    If "X" than "XA", user can only select diagonally in the direction selected, as "A" is diagonal.
+    If "X" than "XF", user can only select diagonally in the direction selected, as "F" is diagonal.
+    If "X" than "XB", user can only select vertically in the direction selected, as "E" is horizontal.
+
+    I only want the user to change colors & select cells for trackedSelection if it qualifies these conditions, in all directions,
+    with the given restrictions. Please assist me.
+
+    Keep in mind, the trackedSelection logic is broken, if you come up with a solution, show me what to do about this older code.
